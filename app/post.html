@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Post</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <a href="comunidad.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Comunidad</a></li>
+      <li><a href="marketplace.html">Marketplace</a></li>
+      <li><a href="actividad.html">Actividad</a></li>
+      <li><a href="perfil.html">Perfil</a></li>
+      <li><a href="ajustes.html">Ajustes</a></li>
+    </ul>
+  </nav>
+
+  <main class="contenedor-estrecho">
+    <div id="post-container"></div>
+  </main>
+
+  <footer class="footer">© 2026 StarBonds · Bonds</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const postId = params.get("id");
+    const container = document.getElementById("post-container");
+
+    function obtenerPost() {
+      const locales = [
+        ...(JSON.parse(localStorage.getItem("sb_misPublicaciones") || "[]")),
+        ...(JSON.parse(localStorage.getItem("sb_misCollabs") || "[]")),
+      ];
+      return [...locales, ...POSTS].find((p) => String(p.id) === String(postId));
+    }
+
+    const post = obtenerPost();
+
+    if (!post) {
+      document.title = "Bonds · Post no encontrado";
+      container.innerHTML = `
+        <div class="tarjeta" style="text-align:center">
+          <h2>Post no encontrado</h2>
+          <p class="muted">Lo sentimos, no se encontró el post solicitado.</p>
+          <a href="comunidad.html" class="btn btn-primario">Volver al feed</a>
+        </div>
+      `;
+    } else {
+      const perfil = perfilActual();
+      const autor = post.autor === "yo" ? perfil : (USUARIOS[post.autor] || { nombre: "Autor desconocido", usuario: "", emoji: "🎨" });
+      const autorLink = post.autor === "yo" ? "perfil.html" : `usuario.html?id=${encodeURIComponent(post.autor)}`;
+      const autorName = autor.nombre || "Autor desconocido";
+      const autorUser = autor.usuario || "@usuario";
+      document.title = `Bonds · ${post.titulo || "Post"}`;
+      container.innerHTML = `
+        <article class="tarjeta publicacion detalle-post">
+          <div class="contenido">
+            <div class="encabezado" style="align-items:flex-start; gap:12px; flex-wrap:wrap;">
+              <a href="${autorLink}" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:10px;">
+                <span class="avatar avatar-md">${autor.emoji || "🎨"}</span>
+                <div>
+                  <div class="nombre">${autorName}</div>
+                  <div class="usuario">${autorUser}</div>
+                </div>
+              </a>
+              <span class="tiempo">· ${post.tiempo || "hace un momento"}</span>
+              ${post.collab ? '<span class="tag" style="margin-left:auto">🤝 Collab</span>' : ""}
+            </div>
+            <p class="texto" style="margin:18px 0 0">${post.texto || ""}</p>
+            ${post.emoji ? `<div class="imagen" style="margin-top:18px">${post.emoji}</div>` : ""}
+            <div class="acciones-post" style="gap:12px; margin-top:18px">
+              <button class="activo"><span>❤️</span> <span class="contador">${post.likes || 0}</span></button>
+              <button><span>💬</span> <span class="contador">${post.comentarios ?? post.com ?? 0}</span></button>
+              <button onclick="toast('Post compartido 🔗')">🔁 Compartir</button>
+            </div>
+          </div>
+        </article>
+
+        <div class="tarjeta" style="margin-top:18px">
+          <h2>Más de ${autorName}</h2>
+          <p class="muted">Ve al perfil para ver todos sus posts y colaboraciones.</p>
+          <a href="${autorLink}" class="btn btn-primario">Ver perfil de ${autorName}</a>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

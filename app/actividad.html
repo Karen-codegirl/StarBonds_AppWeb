@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Actividad</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="comunidad.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Comunidad</a></li>
+      <li><a href="marketplace.html">Marketplace</a></li>
+      <li><a href="actividad.html">Actividad</a></li>
+      <li><a href="perfil.html">Perfil</a></li>
+      <li><a href="ajustes.html">Ajustes</a></li>
+    </ul>
+  </nav>
+
+  <main class="contenedor-estrecho">
+    <h1 class="titulo-pagina">Actividad</h1>
+    <p class="subtitulo">Lo último de tu comunidad: likes, follows, collabs y posts de tus seguidos.</p>
+
+    <!-- Pestañas de filtro -->
+    <div class="tabs" data-grupo="act">
+      <button class="tab activo" data-tab="todo">Todo</button>
+      <button class="tab" data-tab="like">Likes</button>
+      <button class="tab" data-tab="follow">Follows</button>
+      <button class="tab" data-tab="collab">Collabs</button>
+    </div>
+
+    <section data-panel="todo" data-grupo="act" class="tab-panel activo">
+      <div class="tarjeta"><div class="actividad-lista" id="lista-todo"></div></div>
+    </section>
+    <section data-panel="like" data-grupo="act" class="tab-panel">
+      <div class="tarjeta"><div class="actividad-lista" id="lista-like"></div></div>
+    </section>
+    <section data-panel="follow" data-grupo="act" class="tab-panel">
+      <div class="tarjeta"><div class="actividad-lista" id="lista-follow"></div></div>
+    </section>
+    <section data-panel="collab" data-grupo="act" class="tab-panel">
+      <div class="tarjeta"><div class="actividad-lista" id="lista-collab"></div></div>
+    </section>
+  </main>
+
+  <footer class="footer">© 2026 StarBonds · Bonds</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const ICONOS = {
+      like:   { clase: "ico-like",   simbolo: "❤️" },
+      follow: { clase: "ico-follow", simbolo: "👤" },
+      collab: { clase: "ico-collab", simbolo: "🤝" },
+      post:   { clase: "ico-post",   simbolo: "🆕" },
+    };
+
+    function itemHTML(a) {
+      const u = USUARIOS[a.usuario];
+      const ico = ICONOS[a.tipo];
+      return `
+        <a class="actividad-item" href="usuario.html?id=${a.usuario}" style="text-decoration:none; color:inherit">
+          <div class="actividad-icono ${ico.clase}">${ico.simbolo}</div>
+          ${avatarHTML(u.emoji, "avatar-sm")}
+          <div class="txt"><b>${u.nombre}</b> ${a.texto}</div>
+          <span class="tiempo">${a.tiempo}</span>
+        </a>`;
+    }
+
+    function pintar(id, lista) {
+      const el = document.getElementById(id);
+      el.innerHTML = lista.length
+        ? lista.map(itemHTML).join("")
+        : '<p class="muted center" style="padding:30px 0">Nada por aquí todavía.</p>';
+    }
+
+    pintar("lista-todo", ACTIVIDAD);
+    pintar("lista-like", ACTIVIDAD.filter((a) => a.tipo === "like"));
+    pintar("lista-follow", ACTIVIDAD.filter((a) => a.tipo === "follow"));
+    pintar("lista-collab", ACTIVIDAD.filter((a) => a.tipo === "collab"));
+  </script>
+</body>
+</html>

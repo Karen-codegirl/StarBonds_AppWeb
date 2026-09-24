@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Checkout</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="comunidad.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Comunidad</a></li>
+      <li><a href="marketplace.html">Marketplace</a></li>
+      <li><a href="actividad.html">Actividad</a></li>
+      <li><a href="perfil.html">Perfil</a></li>
+    </ul>
+  </nav>
+
+  <main class="contenedor">
+    <h1 class="titulo-pagina">Checkout</h1>
+    <p class="subtitulo"><a href="marketplace.html" class="link-violeta">← Seguir comprando</a></p>
+
+    <div class="checkout-grid" id="checkout">
+      <!-- Columna izquierda: datos de envío y pago -->
+      <div>
+        <div class="tarjeta" style="margin-bottom:20px">
+          <h3 style="margin-bottom:16px">Datos de entrega</h3>
+          <form id="form-datos">
+            <div class="campo">
+              <label for="c-nombre">Nombre completo</label>
+              <input type="text" id="c-nombre" placeholder="Tu nombre" required />
+            </div>
+            <div class="campo">
+              <label for="c-email">Correo electrónico</label>
+              <input type="email" id="c-email" placeholder="correo@ejemplo.com" required />
+            </div>
+            <div class="campo">
+              <label for="c-dir">Dirección (para piezas físicas)</label>
+              <input type="text" id="c-dir" placeholder="Calle, número, ciudad" />
+            </div>
+          </form>
+        </div>
+
+        <div class="tarjeta">
+          <h3 style="margin-bottom:16px">Pago</h3>
+          <div class="campo">
+            <label for="c-tarjeta">Número de tarjeta</label>
+            <input type="text" id="c-tarjeta" placeholder="0000 0000 0000 0000" inputmode="numeric" />
+          </div>
+          <div class="fila-2">
+            <div class="campo">
+              <label for="c-exp">Vencimiento</label>
+              <input type="text" id="c-exp" placeholder="MM/AA" />
+            </div>
+            <div class="campo">
+              <label for="c-cvv">CVV</label>
+              <input type="text" id="c-cvv" placeholder="123" inputmode="numeric" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna derecha: resumen del pedido -->
+      <aside class="tarjeta" style="position:sticky; top:90px">
+        <h3 style="margin-bottom:8px">Tu pedido</h3>
+        <div id="resumen"></div>
+
+        <div class="resumen-total">
+          <span>Total</span>
+          <span id="total">$0</span>
+        </div>
+        <button class="btn btn-primario btn-bloque" onclick="confirmar()">Confirmar pedido</button>
+        <p class="muted center" style="font-size:.8rem; margin-top:12px">Pago simulado · demo educativa</p>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">© 2026 StarBonds · Bonds</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    function pintarResumen() {
+      const items = Carrito.items();
+      const cont = document.getElementById("resumen");
+      if (!items.length) {
+        cont.innerHTML = '<p class="muted" style="padding:16px 0">Tu carrito está vacío. <a href="marketplace.html" class="link-violeta">Ir al marketplace</a></p>';
+        document.getElementById("total").textContent = "$0";
+        return;
+      }
+      cont.innerHTML = items.map((id) => {
+        const p = PRODUCTOS.find((x) => x.id === id);
+        const autor = USUARIOS[p.autor];
+        return `
+          <div class="resumen-item">
+            <div class="mini">${p.emoji}</div>
+            <div class="crece">
+              <div style="font-weight:600">${p.titulo}</div>
+              <div class="muted" style="font-size:.82rem">${autor.nombre} · ${p.disciplina}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:700">$${p.precio}</div>
+              <button onclick="quitar('${p.id}')" style="background:none;border:none;color:var(--texto-suave);cursor:pointer;font-size:.78rem">quitar</button>
+            </div>
+          </div>`;
+      }).join("");
+      document.getElementById("total").textContent = "$" + Carrito.total();
+    }
+
+    function quitar(id) { Carrito.quitar(id); pintarResumen(); }
+
+    function confirmar() {
+      if (!Carrito.items().length) { toast("Tu carrito está vacío"); return; }
+      const form = document.getElementById("form-datos");
+      if (!form.reportValidity()) return;
+      Carrito.vaciar();
+      pintarResumen();
+      toast("¡Pedido confirmado! 🎉 Gracias por apoyar a los artistas.");
+    }
+
+    pintarResumen();
+  </script>
+</body>
+</html>

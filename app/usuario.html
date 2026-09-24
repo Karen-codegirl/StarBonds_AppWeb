@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Perfil de artista</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="comunidad.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Comunidad</a></li>
+      <li><a href="marketplace.html">Marketplace</a></li>
+      <li><a href="actividad.html">Actividad</a></li>
+      <li><a href="perfil.html">Perfil</a></li>
+      <li><a href="ajustes.html">Ajustes</a></li>
+    </ul>
+  </nav>
+
+  <main class="contenedor">
+    <div class="perfil-portada"></div>
+
+    <header class="perfil-cabecera" style="padding:0 8px">
+      <span class="avatar avatar-xl" id="u-avatar">🖌️</span>
+      <div class="perfil-info">
+        <h1 id="u-nombre">Lía Moreno</h1>
+        <p class="perfil-usuario" id="u-usuario"></p>
+
+        <div class="estadisticas">
+          <div><span class="num" id="u-posts">0</span> <span class="etq">posts</span></div>
+          <div><span class="num" id="u-seg">0</span> <span class="etq">seguidores</span></div>
+          <div><span class="num" id="u-sgd">0</span> <span class="etq">seguidos</span></div>
+        </div>
+
+        <p class="perfil-bio" id="u-bio"></p>
+        <div class="tags" id="u-tags" style="margin-bottom:14px"></div>
+
+        <div class="perfil-acciones">
+          <button class="btn btn-primario" id="btn-follow" onclick="toggleFollow()">+ Seguir</button>
+          <button class="btn btn-borde" onclick="abrirChat()">💬 Chat</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="tabs" data-grupo="usuario">
+      <button class="tab activo" data-tab="posts">Posts</button>
+      <button class="tab" data-tab="collabs">Collabs</button>
+    </div>
+
+    <section data-panel="posts" data-grupo="usuario" class="tab-panel activo">
+      <div class="posts-grid" id="u-posts-grid"></div>
+    </section>
+    <section data-panel="collabs" data-grupo="usuario" class="tab-panel">
+      <div class="posts-grid" id="u-collabs-grid"></div>
+    </section>
+  </main>
+
+  <!-- Modal chat -->
+  <div class="modal-fondo" id="modal-chat">
+    <div class="modal">
+      <button class="modal-cerrar" onclick="cerrarChat()">×</button>
+      <h3 id="chat-titulo">Chat</h3>
+      <p class="muted" style="margin-bottom:14px">Inicia una conversación. (Demo: los mensajes se quedan en esta ventana.)</p>
+      <div id="chat-mensajes" style="min-height:80px; display:flex; flex-direction:column; gap:8px; margin-bottom:14px"></div>
+      <form onsubmit="enviarMensaje(event)" style="display:flex; gap:8px">
+        <input type="text" id="chat-input" placeholder="Escribe un mensaje…" class="" style="flex:1; padding:11px 14px; border-radius:10px; border:1px solid var(--borde); background:var(--fondo); color:var(--texto); font-family:inherit" required />
+        <button class="btn btn-primario" type="submit">Enviar</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 StarBonds · Bonds</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Escoge el usuario por el parámetro ?id= o ?u=  (por defecto: lia)
+    const params = new URLSearchParams(location.search);
+    const rawId = params.get("id")?.trim();
+    const rawUser = params.get("u")?.trim();
+
+    function buscarClaveUsuario(valor) {
+      if (!valor) return null;
+      const limpio = valor.startsWith("@") ? valor : `@${valor}`;
+      const clavePorId = USUARIOS[valor] ? valor : null;
+      if (clavePorId) return clavePorId;
+      const clavePorUsuario = Object.keys(USUARIOS).find((k) => USUARIOS[k].usuario === valor || USUARIOS[k].usuario === limpio);
+      return clavePorUsuario || null;
+    }
+
+    let clave = buscarClaveUsuario(rawId) || buscarClaveUsuario(rawUser) || "lia";
+    const persona = USUARIOS[clave] || USUARIOS.lia;
+
+    document.getElementById("u-avatar").textContent = persona.emoji;
+    document.getElementById("u-nombre").textContent = persona.nombre;
+    document.getElementById("u-usuario").textContent = persona.usuario;
+    document.getElementById("u-seg").textContent = persona.seguidores;
+    document.getElementById("u-sgd").textContent = persona.seguidos;
+    document.getElementById("u-bio").textContent = persona.bio;
+    document.getElementById("u-tags").innerHTML = persona.tags.map((t) => `<span class="tag">${t}</span>`).join("");
+
+    const CHAT_KEY = `chat_${persona.id}`;
+    let chatHistory = Estado.get(CHAT_KEY, []);
+
+    function pintarChat() {
+      const cont = document.getElementById("chat-mensajes");
+      cont.innerHTML = chatHistory.length
+        ? chatHistory.map((msg) => `
+            <div style="align-self:${msg.sender === 'me' ? 'flex-end' : 'flex-start'}; background:${msg.sender === 'me' ? 'linear-gradient(135deg,var(--violeta),var(--violeta-claro))' : 'var(--fondo-dos)'}; padding:8px 14px; border-radius:14px 14px 2px 14px; max-width:80%; margin-bottom:6px;">
+              <div style="font-size:.85rem; color:var(--texto-suave); margin-bottom:4px;">${msg.sender === 'me' ? 'Tú' : persona.nombre}</div>
+              <div>${msg.text}</div>
+            </div>`).join("")
+        : '<p class="muted" style="padding:10px 0">No hay mensajes aún. Escribe algo para empezar la conversación.</p>';
+      cont.scrollTop = cont.scrollHeight;
+    }
+
+    function guardarChat() {
+      Estado.set(CHAT_KEY, chatHistory);
+    }
+
+    function tarjetaPost(post) {
+      return `
+      <article class="post-card">
+        <a href="post.html?id=${encodeURIComponent(post.id)}" class="post-card-link" style="display:block; color:inherit; text-decoration:none;">
+          <div class="post-media">${post.emoji || '🖼️'}</div>
+          <div class="cuerpo">
+            <h4>${post.titulo || 'Post'}</h4>
+            <div class="meta"><span>❤️ ${post.likes || 0}</span><span>💬 ${post.comentarios ?? post.com ?? 0}</span></div>
+          </div>
+        </a>
+      </article>`;
+    }
+
+    const postsPersona = POSTS.filter((p) => p.autor === persona.id);
+    document.getElementById("u-posts-grid").innerHTML = postsPersona.length
+      ? postsPersona.map(tarjetaPost).join("")
+      : '<p class="muted" style="padding:22px 0; text-align:center">Este artista aún no tiene publicaciones en el feed.</p>';
+    document.getElementById("u-posts").textContent = postsPersona.length;
+
+    const collabsPersona = postsPersona.filter((p) => p.collab);
+    document.getElementById("u-collabs-grid").innerHTML = collabsPersona.length
+      ? collabsPersona.map(tarjetaPost).join("")
+      : '<p class="muted" style="padding:22px 0; text-align:center">No hay colaboraciones registradas para este artista.</p>';
+
+    // ----- Seguir -----
+    const seguidos = Estado.get("siguiendo", []);
+    let siguiendo = seguidos.includes(persona.id);
+    function pintarFollow() {
+      const b = document.getElementById("btn-follow");
+      b.textContent = siguiendo ? "✓ Siguiendo" : "+ Seguir";
+      b.className = "btn " + (siguiendo ? "btn-borde" : "btn-primario");
+      document.getElementById("u-seg").textContent = persona.seguidores + (siguiendo ? 1 : 0);
+    }
+    function toggleFollow() {
+      siguiendo = !siguiendo;
+      let lista = Estado.get("siguiendo", []);
+      lista = siguiendo ? [...new Set([...lista, persona.id])] : lista.filter((x) => x !== persona.id);
+      Estado.set("siguiendo", lista);
+      pintarFollow();
+      toast(siguiendo ? `Ahora sigues a ${persona.nombre}` : `Dejaste de seguir a ${persona.nombre}`);
+    }
+    pintarFollow();
+
+    // ----- Chat -----
+    function abrirChat() {
+      document.getElementById("chat-titulo").textContent = "Chat con " + persona.nombre;
+      document.getElementById("modal-chat").classList.add("abierto");
+      pintarChat();
+    }
+    function cerrarChat() { document.getElementById("modal-chat").classList.remove("abierto"); }
+    function enviarMensaje(e) {
+      e.preventDefault();
+      const input = document.getElementById("chat-input");
+      const texto = input.value.trim();
+      if (!texto) return;
+      chatHistory.push({ sender: "me", text: texto, created: Date.now() });
+      guardarChat();
+      pintarChat();
+      input.value = "";
+    }
+    document.getElementById("modal-chat").addEventListener("click", (e) => {
+      if (e.target.id === "modal-chat") cerrarChat();
+    });
+    pintarChat();
+  </script>
+</body>
+</html>

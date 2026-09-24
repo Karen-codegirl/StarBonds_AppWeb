@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Entrar</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="../index.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Explorar</a></li>
+    </ul>
+  </nav>
+
+  <main class="contenedor-estrecho">
+    <div class="auth-card">
+      <div class="auth-logo">Star<span>Bonds</span></div>
+      <p class="auth-sub" id="auth-sub">Conecta con artistas. Crea. Colabora.</p>
+
+      <!-- Pestañas Iniciar sesión / Crear cuenta -->
+      <div class="tabs" data-grupo="auth">
+        <button class="tab activo" data-tab="login">Iniciar sesión</button>
+        <button class="tab" data-tab="signin">Crear cuenta</button>
+      </div>
+
+      <!-- Botón de Google (común a ambas pestañas) -->
+      <button class="btn btn-google" id="btn-google">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span id="google-txt">Continuar con Google</span>
+      </button>
+
+      <div class="separador">o con tu correo</div>
+
+      <!-- Formulario de inicio de sesión -->
+      <form data-panel="login" data-grupo="auth" class="tab-panel activo" onsubmit="entrar(event)">
+        <div class="campo">
+          <label for="email-l">Correo electrónico</label>
+          <input type="email" id="email-l" placeholder="correo@ejemplo.com" required />
+        </div>
+        <div class="campo">
+          <label for="pass-l">Contraseña</label>
+          <input type="password" id="pass-l" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primario btn-bloque">Iniciar sesión</button>
+        <p class="center muted mt-16" style="font-size:.85rem">
+          <a href="#" class="link-violeta" id="recover-link">¿Olvidaste tu contraseña?</a>
+        </p>
+      </form>
+
+      <!-- Formulario de registro -->
+      <form data-panel="signin" data-grupo="auth" class="tab-panel" onsubmit="entrar(event)">
+        <div class="campo">
+          <label for="nombre-s">Nombre</label>
+          <input type="text" id="nombre-s" placeholder="Tu nombre" required />
+        </div>
+        <div class="campo">
+          <label for="user-s">Nombre de usuario</label>
+          <input type="text" id="user-s" placeholder="tu_usuario" required />
+        </div>
+        <div class="campo">
+          <label for="email-s">Correo electrónico</label>
+          <input type="email" id="email-s" placeholder="correo@ejemplo.com" required />
+        </div>
+        <div class="campo">
+          <label for="pass-s">Contraseña</label>
+          <input type="password" id="pass-s" placeholder="••••••••" required />
+        </div>
+        <div class="campo">
+          <label>Disciplinas artísticas</label>
+          <div class="tag-selector" id="signup-tags">
+            <button type="button" class="tag tag-boton" data-tag="Ilustración">Ilustración</button>
+            <button type="button" class="tag tag-boton" data-tag="Música">Música</button>
+            <button type="button" class="tag tag-boton" data-tag="Escritura">Escritura</button>
+            <button type="button" class="tag tag-boton" data-tag="Fotografía">Fotografía</button>
+            <button type="button" class="tag tag-boton" data-tag="Escultura">Escultura</button>
+            <button type="button" class="tag tag-boton" data-tag="Cómic">Cómic</button>
+            <button type="button" class="tag tag-boton" data-tag="Animación">Animación</button>
+            <button type="button" class="tag tag-boton" data-tag="Diseño">Diseño</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primario btn-bloque">Crear cuenta</button>
+      </form>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Cambia el subtítulo según la pestaña activa
+    document.querySelectorAll('[data-grupo="auth"].tab').forEach((b) => {
+      b.addEventListener("click", () => {
+        const esLogin = b.dataset.tab === "login";
+        document.getElementById("auth-sub").textContent =
+          esLogin ? "Bienvenido de vuelta a la comunidad." : "Únete y muestra tu arte al mundo.";
+        document.getElementById("google-txt").textContent =
+          esLogin ? "Continuar con Google" : "Registrarte con Google";
+      });
+    });
+
+    async function entrar(e) {
+      await loginWithSupabase(e);
+    }
+
+    document.getElementById("btn-google").addEventListener("click", () => {
+      // Aquí iniciarías el flujo OAuth de Google.
+      toast("Conectando con Google…");
+      setTimeout(() => (location.href = "comunidad.html"), 700);
+    });
+
+    document.querySelectorAll(".tag-boton").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        btn.classList.toggle("activo");
+      });
+    });
+
+    document.getElementById("recover-link").addEventListener("click", async (event) => {
+      event.preventDefault();
+      const email = (document.getElementById("email-l").value || "").trim();
+
+      if (!email) {
+        toast("Escribe tu correo para recuperar la contraseña");
+        document.getElementById("email-l").focus();
+        return;
+      }
+
+      if (!supabaseClient) {
+        toast("La recuperación no está disponible en este momento");
+        return;
+      }
+
+      try {
+        const redirectUrl = `${location.origin}${location.pathname.replace(/login\.html$/, "")}reset-password.html`;
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+          redirectTo: redirectUrl,
+        });
+
+        if (error) throw error;
+        toast("Revisa tu correo para restablecer la contraseña ✉️");
+      } catch (err) {
+        console.error("Error recuperando contraseña:", err);
+        toast(err.message || "No se pudo enviar el correo de recuperación");
+      }
+    });
+  </script>
+</body>
+</html>

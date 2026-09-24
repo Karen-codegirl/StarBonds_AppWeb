@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Marketplace</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="comunidad.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Comunidad</a></li>
+      <li><a href="marketplace.html">Marketplace</a></li>
+      <li><a href="actividad.html">Actividad</a></li>
+      <li><a href="perfil.html">Perfil</a></li>
+      <li><a href="ajustes.html">Ajustes</a></li>
+      <li>
+        <a href="checkout.html" style="position:relative">🛒
+          <span id="cart-badge" style="position:absolute; top:-2px; right:-6px; background:var(--violeta-claro); color:#1a0033; font-size:.7rem; font-weight:800; min-width:18px; height:18px; border-radius:999px; display:none; align-items:center; justify-content:center; padding:0 4px">0</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <main class="contenedor">
+    <h1 class="titulo-pagina">Marketplace</h1>
+    <p class="subtitulo">Encarga y compra arte directamente a los creadores.</p>
+
+    <!-- Filtros por disciplina -->
+    <div class="filtros" id="filtros"></div>
+
+    <div class="market-grid" id="grid"></div>
+  </main>
+
+  <footer class="footer">© 2026 StarBonds · Bonds</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const DISCIPLINAS = ["Todas", "Ilustración", "Escultura", "Música", "Fotografía", "Escritura"];
+    const ICONO_DISC = { "Ilustración": "🎨", "Escultura": "🗿", "Música": "🎵", "Fotografía": "📷", "Escritura": "✍️" };
+    let filtro = "Todas";
+
+    function pintarFiltros() {
+      document.getElementById("filtros").innerHTML = DISCIPLINAS.map((d) =>
+        `<button class="tag tag-boton ${d === filtro ? "activo" : ""}" onclick="setFiltro('${d}')">
+           ${d === "Todas" ? "✦" : ICONO_DISC[d]} ${d}
+         </button>`
+      ).join("");
+    }
+    function setFiltro(d) { filtro = d; pintarFiltros(); pintarGrid(); }
+
+    function pintarGrid() {
+      const lista = filtro === "Todas" ? PRODUCTOS : PRODUCTOS.filter((p) => p.disciplina === filtro);
+      document.getElementById("grid").innerHTML = lista.map((p) => {
+        const autor = USUARIOS[p.autor];
+        return `
+        <article class="producto">
+          <div class="img">${p.emoji}<span class="disc-badge">${ICONO_DISC[p.disciplina]} ${p.disciplina}</span></div>
+          <div class="cuerpo">
+            <h4>${p.titulo}</h4>
+            <a class="autor" href="usuario.html?id=${p.autor}" style="text-decoration:none">
+              ${avatarHTML(autor.emoji, "avatar-sm")} ${autor.nombre}
+            </a>
+            <div class="pie">
+              <span class="precio">$${p.precio}</span>
+              <button class="btn btn-primario btn-sm" onclick="Carrito.agregar('${p.id}')">Añadir 🛒</button>
+            </div>
+          </div>
+        </article>`;
+      }).join("");
+    }
+
+    pintarFiltros();
+    pintarGrid();
+  </script>
+</body>
+</html>

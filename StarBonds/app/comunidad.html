@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Comunidad</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="comunidad.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Comunidad</a></li>
+      <li><a href="marketplace.html">Marketplace</a></li>
+      <li><a href="actividad.html">Actividad</a></li>
+      <li><a href="perfil.html">Perfil</a></li>
+      <li><a href="ajustes.html">Ajustes</a></li>
+    </ul>
+  </nav>
+
+  <main class="contenedor-estrecho">
+    <h1 class="titulo-pagina">Comunidad</h1>
+    <p class="subtitulo">Comparte tu arte y descubre el de otros.</p>
+
+    <!-- Compositor -->
+    <div class="tarjeta">
+      <div class="compositor">
+        <span class="avatar avatar-md" id="comp-avatar">🎨</span>
+        <div style="flex:1">
+          <textarea id="comp-texto" placeholder="¿En qué estás trabajando hoy?"></textarea>
+          <div class="compositor-acciones">
+            <div class="compositor-iconos">
+              <button class="icono-btn" title="Imagen" type="button" onclick="elegirEmoji()">🖼️</button>
+              <button class="icono-btn" title="Collab" type="button" onclick="marcarCollab()">🤝</button>
+            </div>
+            <button class="btn btn-primario btn-sm" onclick="publicar()">Publicar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta match-panel">
+      <div class="match-header">
+        <div class="match-branding">
+          <div class="plei-badge">P</div>
+          <div>
+            <p class="eyebrow">Plei</p>
+            <h2>Tu matchmaker artístico</h2>
+          </div>
+        </div>
+        <span class="tag">Matching por tags</span>
+      </div>
+      <div class="match-grid" id="match-grid"></div>
+    </div>
+
+    <!-- Pestañas For you / Following -->
+    <div class="tabs" data-grupo="feed">
+      <button class="tab activo" data-tab="foryou">Para ti</button>
+      <button class="tab" data-tab="following">Siguiendo</button>
+    </div>
+
+    <section data-panel="foryou" data-grupo="feed" class="tab-panel activo">
+      <div class="feed" id="feed-foryou"></div>
+    </section>
+    <section data-panel="following" data-grupo="feed" class="tab-panel">
+      <div class="feed" id="feed-following"></div>
+    </section>
+  </main>
+
+  <footer class="footer">© 2026 StarBonds · Bonds</footer>
+
+  <div class="plei-assistant" aria-live="polite">
+    <div class="plei-panel" id="plei-panel">
+      <div class="plei-panel-header">
+        <div class="plei-header-badge">P</div>
+        <div>
+          <strong>Plei</strong>
+          <small>matchmaker artístico</small>
+        </div>
+      </div>
+      <p>Plei: veo que tienes afinidad con ilustración y narrativa. Hay dos artistas que podrían encajar con tu estilo.</p>
+      <button class="btn btn-primario btn-sm" type="button" onclick="toast('Plei está preparando tu mejor match ✨')">Ver sugerencias</button>
+    </div>
+
+    <button class="plei-toggle" type="button" aria-label="Abrir Plei" id="plei-toggle">
+      <img src="plei-avatar.png" alt="Plei" class="plei-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+      <span class="plei-avatar-fallback">P</span>
+    </button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const perfil = perfilActual();
+    document.getElementById("comp-avatar").textContent = perfil.emoji;
+
+    let nuevoEmoji = null;   // imagen elegida para el post nuevo
+    let esCollab = false;
+    const likes = Estado.get("likes", {});
+
+    function publicacionHTML(p) {
+      const a = USUARIOS[p.autor] || perfil;
+      const nombre = a.nombre || perfil.nombre;
+      const usuario = a.usuario || perfil.usuario;
+      const emoji = a.emoji || perfil.emoji;
+      const liked = likes[p.id];
+      const totalLikes = (p.likes || 0) + (liked ? 1 : 0);
+      const enlace = USUARIOS[p.autor] ? `usuario.html?id=${p.autor}` : "perfil.html";
+      return `
+        <article class="tarjeta publicacion">
+          <a href="${enlace}">${avatarHTML(emoji, "avatar-md")}</a>
+          <div class="contenido">
+            <div class="encabezado">
+              <a href="${enlace}" class="nombre" style="text-decoration:none;color:var(--texto)">${nombre}</a>
+              <span class="usuario">${usuario}</span>
+              <span class="tiempo">· ${p.tiempo}</span>
+              ${p.collab ? '<span class="tag" style="margin-left:auto">🤝 Collab</span>' : ""}
+            </div>
+            <p class="texto">${p.texto}</p>
+            ${p.emoji ? `<div class="imagen">${p.emoji}</div>` : ""}
+            <div class="acciones-post">
+              <button onclick="like('${p.id}', this)" class="${liked ? "activo" : ""}">
+                <span>${liked ? "❤️" : "🤍"}</span> <span class="contador">${totalLikes}</span>
+              </button>
+              <button>💬 ${p.comentarios || 0}</button>
+              <button onclick="toast('Post compartido 🔗')">🔁 Compartir</button>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    function renderMatches() {
+      const contenedor = document.getElementById("match-grid");
+      if (!contenedor) return;
+
+      const objetivo = perfilParaMatching();
+      if (!objetivo.tags || !objetivo.tags.length) {
+        contenedor.innerHTML = "<p class='muted'>Completa tu perfil con disciplinas para que Plei te recomiende artistas.</p>";
+        return;
+      }
+
+      const matches = buscarCandidatos(objetivo, Object.values(USUARIOS));
+
+      if (!matches.length) {
+        contenedor.innerHTML = "<p class='muted'>Todavía no hay artistas con afinidad. Añade más tags a tu perfil para ampliar tus matches.</p>";
+        return;
+      }
+
+      contenedor.innerHTML = matches.map(({ usuario, afinidad }) => {
+        const habilidades = afinidad.en_comun.length
+          ? `En común: ${afinidad.en_comun.map((tag) => tag.replace(/-/g, " ")).join(", ")}`
+          : `Complemento: ${afinidad.complementos.map(([a, b]) => `${a.replace(/-/g, " ")} + ${b.replace(/-/g, " ")}`).join(", ")}`;
+        const tags = (usuario.tags || []).slice(0, 3).map((tag) => `<span class="mini-tag">${tag}</span>`).join("");
+
+        return `
+          <article class="match-card">
+            <div class="match-card-top">
+              <div class="match-avatar-wrap">
+                <span class="avatar avatar-lg">${usuario.emoji}</span>
+              </div>
+              <div class="match-score">${Math.min(98, 55 + afinidad.puntaje * 10)}%</div>
+            </div>
+
+            <div class="match-card-header">
+              <div>
+                <h3>${usuario.nombre}</h3>
+                <small>${usuario.usuario}</small>
+              </div>
+              <span class="match-pill">Match ${afinidad.puntaje}</span>
+            </div>
+
+            <p class="match-why">Plei: ${habilidades}</p>
+
+            <div class="mini-tags">${tags}</div>
+
+            <div class="match-actions">
+              <button class="btn btn-primario btn-sm" onclick="toast('Plei ha enviado una propuesta a ${usuario.nombre} 🤝')">Conectar</button>
+              <a href="usuario.html?id=${usuario.id}" class="btn btn-borde btn-sm">Ver</a>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function pintarFeeds() {
+      const propios = Estado.get("misPublicaciones", []);
+      const todos = [...propios, ...POSTS];
+      document.getElementById("feed-foryou").innerHTML = todos.map(publicacionHTML).join("");
+      const siguiendo = Estado.get("siguiendo", []);
+      const following = todos.filter((p) => p.autor === "yo" || p.following || siguiendo.includes(p.autor));
+      document.getElementById("feed-following").innerHTML = following.length
+        ? following.map(publicacionHTML).join("")
+        : `<p class="muted center" style="padding:40px 0">Aún no sigues a nadie. Ve al <a href="comunidad.html" class="link-violeta">feed Para ti</a> y empieza a seguir artistas.</p>`;
+    }
+
+    function like(id, btn) {
+      const yaLikeado = !!likes[id];
+      const siguienteEstado = !yaLikeado;
+      likes[id] = siguienteEstado;
+      Estado.set("likes", likes);
+
+      btn.classList.toggle("activo", siguienteEstado);
+      btn.querySelector("span").textContent = siguienteEstado ? "❤️" : "🤍";
+
+      const propios = Estado.get("misPublicaciones", []);
+      const basePost = [...propios, ...POSTS].find((p) => p.id === id);
+      const base = Number(basePost?.likes || 0);
+      const c = btn.querySelector(".contador");
+      c.textContent = base + (siguienteEstado ? 1 : 0);
+
+      const index = propios.findIndex((p) => p.id === id);
+      if (index >= 0) {
+        const nuevoLikes = Math.max(0, Number(propios[index].likes || 0) + (siguienteEstado ? 1 : -1));
+        propios[index] = { ...propios[index], likes: nuevoLikes };
+        Estado.set("misPublicaciones", propios);
+      }
+    }
+
+    function elegirEmoji() {
+      const opciones = ["🎨", "🖼️", "📷", "🎼", "🗿", "✍️", "🌅", "🔥"];
+      nuevoEmoji = opciones[Math.floor(Math.random() * opciones.length)];
+      toast("Imagen añadida " + nuevoEmoji);
+    }
+    function marcarCollab() { esCollab = !esCollab; toast(esCollab ? "Marcado como collab 🤝" : "Collab quitado"); }
+
+    function publicar() {
+      const texto = document.getElementById("comp-texto").value.trim();
+      if (!texto) { toast("Escribe algo primero ✍️"); return; }
+      const propios = Estado.get("misPublicaciones", []);
+      propios.unshift({
+        id: "yo" + Date.now(),
+        autor: "yo",
+        texto,
+        emoji: nuevoEmoji,
+        collab: esCollab,
+        likes: 0,
+        comentarios: 0,
+        tiempo: "ahora",
+        following: true,
+      });
+      Estado.set("misPublicaciones", propios);
+      document.getElementById("comp-texto").value = "";
+      nuevoEmoji = null; esCollab = false;
+      pintarFeeds();
+      toast("¡Publicado! 🎉");
+    }
+
+    renderMatches();
+    pintarFeeds();
+
+    const pleiToggle = document.getElementById("plei-toggle");
+    const pleiPanel = document.getElementById("plei-panel");
+
+    if (pleiToggle && pleiPanel) {
+      pleiToggle.addEventListener("click", () => {
+        pleiPanel.classList.toggle("abierto");
+      });
+    }
+  </script>
+</body>
+</html>

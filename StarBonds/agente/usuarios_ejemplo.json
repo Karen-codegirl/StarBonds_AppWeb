@@ -1,0 +1,45 @@
+{
+  "_comentario": "EDITABLE: estos son usuarios de ejemplo para probar el agente. Cada usuario tiene tags (disciplinas). Cambia o agrega los que quieras.",
+  "usuarios": [
+    {
+      "id": "u001",
+      "nombre": "Lucía Ramírez",
+      "ciudad": "CDMX",
+      "bio": "Ilustradora digital enfocada en personajes y portadas de libros.",
+      "tags": ["ilustracion", "diseno-digital", "concept-art", "narrativa"],
+      "vende": true
+    },
+    {
+      "id": "u002",
+      "nombre": "Marco Díaz",
+      "ciudad": "Guadalajara",
+      "bio": "Escritor de cuentos de fantasía y guionista independiente.",
+      "tags": ["escritura", "narrativa", "guion", "fantasia"],
+      "vende": false
+    },
+    {
+      "id": "u003",
+      "nombre": "Sofía Nava",
+      "ciudad": "Monterrey",
+      "bio": "Productora musical, hace bandas sonoras y ambientaciones.",
+      "tags": ["musica", "produccion", "sonido", "fantasia"],
+      "vende": true
+    },
+    {
+      "id": "u004",
+      "nombre": "Diego Herrera",
+      "ciudad": "CDMX",
+      "bio": "Animador 2D y motion graphics para video y redes.",
+      "tags": ["animacion", "diseno-digital", "concept-art", "video"],
+      "vende": true
+    },
+    {
+      "id": "u005",
+      "nombre": "Valeria Cruz",
+      "ciudad": "Puebla",
+      "bio": "Fotógrafa y editora, retrato artístico y producto.",
+      "tags": ["fotografia", "edicion", "retrato"],
+      "vende": true
+    }
+  ]
+}

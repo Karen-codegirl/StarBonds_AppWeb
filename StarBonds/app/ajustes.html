@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Ajustes</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="comunidad.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Comunidad</a></li>
+      <li><a href="marketplace.html">Marketplace</a></li>
+      <li><a href="actividad.html">Actividad</a></li>
+      <li><a href="perfil.html">Perfil</a></li>
+      <li><a href="ajustes.html">Ajustes</a></li>
+    </ul>
+  </nav>
+
+  <main class="contenedor-estrecho">
+    <h1 class="titulo-pagina">Ajustes</h1>
+    <p class="subtitulo">Configura tu cuenta, notificaciones y privacidad.</p>
+
+    <section class="tarjeta">
+      <h2>Cuenta</h2>
+      <p>Administra tu correo, nombre de usuario y preferencias de sesión.</p>
+      <div class="campo">
+        <label for="ajuste-email">Correo electrónico</label>
+        <input type="email" id="ajuste-email" placeholder="correo@ejemplo.com" disabled />
+      </div>
+      <div class="campo">
+        <label for="ajuste-usuario">Nombre de usuario</label>
+        <input type="text" id="ajuste-usuario" placeholder="nombre_usuario" />
+      </div>
+      <button id="btn-guardar-ajustes" class="btn btn-primario btn-bloque">Guardar cambios</button>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Privacidad</h2>
+      <p>Controla qué información se muestra en tu perfil público.</p>
+      <div class="campo campo-check">
+        <label><input type="checkbox" checked /> Perfil público visible</label>
+      </div>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Notificaciones</h2>
+      <p>Activa o desactiva alertas de nuevas colaboraciones y mensajes.</p>
+      <div class="campo campo-check">
+        <label><input type="checkbox" checked /> Recibir notificaciones por correo</label>
+      </div>
+      <div class="campo campo-check">
+        <label><input type="checkbox" /> Recibir notificaciones dentro de la app</label>
+      </div>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Sesión</h2>
+      <p>Cierra tu sesión segura y vuelve a la pantalla de login.</p>
+      <button id="btn-cerrar-sesion" class="btn btn-borde btn-bloque">Cerrar sesión</button>
+    </section>
+  </main>
+
+  <footer class="footer">© 2026 StarBonds · Bonds</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const ajustesPerfil = perfilActual();
+    document.getElementById("ajuste-email").value = ajustesPerfil.email || "correo@ejemplo.com";
+    document.getElementById("ajuste-usuario").value = ajustesPerfil.usuario;
+
+    document.getElementById("btn-guardar-ajustes").addEventListener("click", () => {
+      ajustesPerfil.usuario = document.getElementById("ajuste-usuario").value.trim() || ajustesPerfil.usuario;
+      Estado.set("perfil", ajustesPerfil);
+      toast("Ajustes guardados ✅");
+    });
+
+    document.getElementById("btn-cerrar-sesion").addEventListener("click", async () => {
+      await cerrarSesion();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonds · Mi perfil</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="comunidad.html" class="logo">Star<span>Bonds</span></a>
+    <ul class="nav-links">
+      <li><a href="comunidad.html">Comunidad</a></li>
+      <li><a href="marketplace.html">Marketplace</a></li>
+      <li><a href="actividad.html">Actividad</a></li>
+      <li><a href="perfil.html">Perfil</a></li>
+      <li><a href="ajustes.html">Ajustes</a></li>
+    </ul>
+  </nav>
+
+  <main class="contenedor">
+    <div class="perfil-portada"></div>
+
+    <header class="perfil-cabecera" style="padding:0 8px">
+      <span class="avatar avatar-xl" id="p-avatar">🎨</span>
+      <div class="perfil-info">
+<h1 id="p-nombre">Artista</h1>
+      <p class="perfil-usuario" id="p-usuario"></p>
+
+      <div class="estadisticas">
+        <div><span class="num" id="p-posts">0</span> <span class="etq">posts</span></div>
+        <div><span class="num" id="p-seg">0</span> <span class="etq">seguidores</span></div>
+        <div><span class="num" id="p-sgd">0</span> <span class="etq">seguidos</span></div>
+        </div>
+
+        <p class="perfil-bio" id="p-bio"></p>
+        <div class="tags" id="p-tags" style="margin-bottom:14px"></div>
+
+        <div class="perfil-acciones">
+          <button class="btn btn-primario" onclick="abrirEditar()">✏️ Editar perfil</button>
+          <button class="btn btn-borde" onclick="compartir()">🔗 Compartir perfil</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Pestañas Posts / Collabs -->
+    <div class="tabs" data-grupo="perfil">
+      <button class="tab activo" data-tab="posts">Posts</button>
+      <button class="tab" data-tab="collabs">Collabs</button>
+    </div>
+
+    <section data-panel="posts" data-grupo="perfil" class="tab-panel activo">
+      <div class="posts-grid" id="mis-posts"></div>
+    </section>
+
+    <section data-panel="collabs" data-grupo="perfil" class="tab-panel">
+      <div class="posts-grid" id="mis-collabs"></div>
+    </section>
+  </main>
+
+  <!-- Modal editar perfil -->
+  <div class="modal-fondo" id="modal-editar">
+    <div class="modal">
+      <button class="modal-cerrar" onclick="cerrarEditar()">×</button>
+      <h3>Editar perfil</h3>
+      <form onsubmit="handleGuardarPerfil(event)">
+        <div class="campo">
+          <label for="e-nombre">Nombre</label>
+          <input type="text" id="e-nombre" required />
+        </div>
+        <div class="campo">
+          <label for="e-foto">Foto de perfil (URL)</label>
+          <input type="url" id="e-foto" placeholder="https://..." />
+        </div>
+        <div class="campo">
+          <label for="e-foto-file">O sube una foto</label>
+          <input type="file" id="e-foto-file" accept="image/*" />
+        </div>
+        <div class="campo">
+          <label for="e-bio">Biografía</label>
+          <textarea id="e-bio" rows="3"></textarea>
+        </div>
+        <div class="campo">
+          <label>Disciplinas artísticas</label>
+          <div class="tag-selector" id="profile-tags">
+            <button type="button" class="tag tag-boton" data-tag="Ilustración">Ilustración</button>
+            <button type="button" class="tag tag-boton" data-tag="Música">Música</button>
+            <button type="button" class="tag tag-boton" data-tag="Escritura">Escritura</button>
+            <button type="button" class="tag tag-boton" data-tag="Fotografía">Fotografía</button>
+            <button type="button" class="tag tag-boton" data-tag="Escultura">Escultura</button>
+            <button type="button" class="tag tag-boton" data-tag="Cómic">Cómic</button>
+            <button type="button" class="tag tag-boton" data-tag="Animación">Animación</button>
+            <button type="button" class="tag tag-boton" data-tag="Diseño">Diseño</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primario btn-bloque">Guardar cambios</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 StarBonds · Bonds</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Usa el perfil real del usuario actual
+    let perfil = perfilActual();
+
+    function pintarPerfil() {
+      const avatarEl = document.getElementById("p-avatar");
+      avatarEl.textContent = "";
+      avatarEl.style.backgroundImage = "";
+      avatarEl.style.backgroundSize = "cover";
+      avatarEl.style.backgroundPosition = "center";
+      avatarEl.style.backgroundRepeat = "no-repeat";
+
+      if (perfil.avatar_url) {
+        avatarEl.style.backgroundImage = `url("${perfil.avatar_url}")`;
+      } else {
+        avatarEl.textContent = perfil.emoji || "🎨";
+      }
+
+      document.getElementById("p-nombre").textContent = perfil.nombre;
+      document.getElementById("p-usuario").textContent = perfil.usuario ? `@${perfil.usuario}` : "";
+      document.getElementById("p-seg").textContent = perfil.seguidores;
+      document.getElementById("p-sgd").textContent = perfil.seguidos;
+      document.getElementById("p-bio").textContent = perfil.bio;
+      document.getElementById("p-tags").innerHTML =
+        perfil.tags.map((t) => `<span class="tag">${t}</span>`).join("");
+    }
+
+    const misPosts = Estado.get("misPublicaciones", []);
+    const misCollabs = Estado.get("misCollabs", []);
+    const likes = Estado.get("likes", {});
+    const tarjetaPost = (p, tipo = "post") => {
+      const id = p.id || `${tipo}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const totalLikes = (p.likes || 0) + (likes[id] ? 1 : 0);
+      return `
+        <article class="post-card">
+          <a href="post.html?id=${encodeURIComponent(id)}" class="post-card-link">
+            <div class="post-media">${p.emoji || "🎨"}</div>
+            <div class="cuerpo">
+              <h4>${p.titulo || p.texto || "Nuevo trabajo"}</h4>
+              <div class="meta"><span>❤️ ${totalLikes}</span><span>💬 ${p.com || p.comentarios || 0}</span></div>
+            </div>
+          </a>
+        </article>`;
+    };
+
+    const postsUsuario = Array.isArray(misPosts) ? misPosts : [];
+    const collabsUsuario = Array.isArray(misCollabs) ? misCollabs : [];
+
+    document.getElementById("mis-posts").innerHTML = postsUsuario.length
+      ? postsUsuario.map((post) => tarjetaPost(post, "post")).join("")
+      : "<p class='muted center' style='padding:32px 0'>Aún no tienes publicaciones. Comparte tu primer trabajo para empezar.</p>";
+
+    document.getElementById("mis-collabs").innerHTML = collabsUsuario.length
+      ? collabsUsuario.map((post) => tarjetaPost(post, "collab")).join("")
+      : "<p class='muted center' style='padding:32px 0'>Todavía no hay colaboraciones.</p>";
+
+    document.getElementById("p-posts").textContent = postsUsuario.length + collabsUsuario.length;
+
+    // ----- Editar -----
+    function seleccionarTagsPerfil() {
+      const tagsActivos = new Set((perfil.tags || []).map((t) => String(t).trim()).filter(Boolean));
+      document.querySelectorAll("#profile-tags .tag-boton").forEach((btn) => {
+        const activo = tagsActivos.has(btn.dataset.tag);
+        btn.classList.toggle("activo", activo);
+      });
+    }
+
+    function abrirEditar() {
+      document.getElementById("e-nombre").value = perfil.nombre;
+      document.getElementById("e-foto").value = perfil.avatar_url || "";
+      document.getElementById("e-foto-file").value = "";
+      document.getElementById("e-bio").value = perfil.bio;
+      seleccionarTagsPerfil();
+      document.getElementById("modal-editar").classList.add("abierto");
+    }
+
+    function cerrarEditar() { document.getElementById("modal-editar").classList.remove("abierto"); }
+
+    document.querySelectorAll("#profile-tags .tag-boton").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        btn.classList.toggle("activo");
+      });
+    });
+
+    document.getElementById("e-foto-file").addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById("e-foto").value = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    async function handleGuardarPerfil(e) {
+      e.preventDefault();
+      const nuevaFoto = (document.getElementById("e-foto").value || "").trim();
+      perfil.nombre = document.getElementById("e-nombre").value.trim();
+      perfil.avatar_url = nuevaFoto || perfil.avatar_url || "";
+      perfil.bio = document.getElementById("e-bio").value.trim();
+      perfil.tags = Array.from(document.querySelectorAll("#profile-tags .tag-boton.activo"))
+        .map((btn) => btn.dataset.tag)
+        .filter(Boolean);
+      await actualizarPerfilRemoto(perfil);
+      guardarPerfil(perfil);
+      perfil = perfilActual();
+      pintarPerfil();
+      cerrarEditar();
+      toast("Perfil actualizado ✨");
+    }
+    document.getElementById("modal-editar").addEventListener("click", (e) => {
+      if (e.target.id === "modal-editar") cerrarEditar();
+    });
+
+    window.addEventListener("perfilActualizado", () => {
+      perfil = perfilActual();
+      pintarPerfil();
+    });
+
+    // ----- Compartir -----
+    function compartir() {
+      const url = location.origin + location.pathname.replace("perfil.html", "usuario.html") + "?u=" + encodeURIComponent(perfil.usuario);
+      if (navigator.share) {
+        navigator.share({ title: "Mi perfil en Bonds", url }).catch(() => {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => toast("Enlace copiado al portapapeles 🔗"));
+      } else {
+        toast(url);
+      }
+    }
+
+    pintarPerfil();
+  </script>
+</body>
+</html>

@@ -94,6 +94,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="app.js"></script>
   <script>
+    (async function redirigirSesionActiva() {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (!error && data.session) location.replace("comunidad.html");
+    })();
+
     // Cambia el subtítulo según la pestaña activa
     document.querySelectorAll('[data-grupo="auth"].tab').forEach((b) => {
       b.addEventListener("click", () => {

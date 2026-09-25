@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StarBonds</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta http-equiv="refresh" content="0; url=./login.html" />
   <style>
     body {
       margin: 0;
@@ -24,23 +24,6 @@
   </style>
 </head>
 <body>
-  <div class="redirect">Comprobando tu sesión...</div>
-  <script>
-    const supabaseUrl = "https://wwhnfchmsqxzlkcmyoex.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3aG5mY3N4emxrY215b2V4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTQzOTQsImV4cCI6MjEwMTI5MDM5NH0.D7B_6nk5D-vLAslyR5WTlnSqR8R4P_8-_AE_y_WawvI";
-
-    async function redirigirSegunSesion() {
-      try {
-        const cliente = window.supabase.createClient(supabaseUrl, supabaseKey);
-        const { data } = await cliente.auth.getSession();
-        window.location.replace(data.session ? "./comunidad.html" : "./login.html");
-      } catch (error) {
-        console.warn("No se pudo comprobar la sesión:", error);
-        window.location.replace("./login.html");
-      }
-    }
-
-    redirigirSegunSesion();
-  </script>
+  <div class="redirect">Redirigiendo al inicio de sesión...</div>
 </body>
 </html>
